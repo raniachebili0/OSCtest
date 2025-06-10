@@ -19,17 +19,17 @@ class DetailsScreen extends StatelessWidget {
             backgroundColor: AppColors.marvelBlue,
             appBar: AppBar(
               backgroundColor: AppColors.marvelBlue,
-              elevation: 0,
-              iconTheme: const IconThemeData(color: AppColors.marvelWhite),
+              elevation: 2,
               title: Text(
-                provider.name,
+                'Marvel Details',
                 style: TextStyle(
                   color: AppColors.marvelRed,
                   fontFamily: 'Anton',
-                  fontSize: 24.sp,
                   fontWeight: FontWeight.bold,
+                  fontSize: 24,
                 ),
               ),
+              centerTitle: true,
             ),
             body: SingleChildScrollView(
               child: Padding(

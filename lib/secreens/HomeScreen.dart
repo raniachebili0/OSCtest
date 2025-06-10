@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:orange_test/services/MarvelApiService.dart';
-import 'package:orange_test/widgets/marvel_characters_grid.dart';
+import 'package:orange_test/widgets/marvel_characters_list.dart';
 import '../theme/app_strings.dart';
 import '../theme/app_colors.dart';
 import 'package:provider/provider.dart';
@@ -65,11 +65,33 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Scaffold(
               backgroundColor: Colors.transparent,
+              appBar:
+              AppBar(
+                backgroundColor: AppColors.marvelBlue.withOpacity(0.95),
+                elevation: 4,
+                title: Column(
+                  children: [
+                    Text(
+                      'Marvel HOME',
+                      style: TextStyle(
+                        color: AppColors.marvelRed,
+                        fontFamily: 'Anton',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                      ),
+                    ),
+
+                  ],
+                ),
+                centerTitle: true,
+                shadowColor: AppColors.marvelRed.withOpacity(0.15),
+                toolbarHeight: 64,
+              ),
               body: provider.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : provider.error != null
                       ? Center(child: Text(provider.error!))
-                      : MarvelCharactersGrid(
+                      : MarvelCharactersList(
                           characters: provider.characters,
                           isLoading: provider.isLoading,
                           error: provider.error,

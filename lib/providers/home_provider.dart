@@ -5,12 +5,15 @@ import '../secreens/DetailsScreen.dart';
 class HomeProvider extends ChangeNotifier {
   final MarvelApiService _apiService = MarvelApiService();
   List<Map<String, dynamic>> _characters = [];
+  List<Map<String, dynamic>> _filteredCharacters = [];
   bool _isLoading = true;
   String? _error;
+  String _searchQuery = '';
 
-  List<Map<String, dynamic>> get characters => _characters;
+  List<Map<String, dynamic>> get characters => _searchQuery.isEmpty ? _characters : _filteredCharacters;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  String get searchQuery => _searchQuery;
 
   HomeProvider() {
     loadCharacters();
@@ -23,10 +26,11 @@ class HomeProvider extends ChangeNotifier {
       notifyListeners();
       final characters = await _apiService.getCharacters();
       _characters = characters.map((character) => character as Map<String, dynamic>).toList();
+      _filteredCharacters = _characters;
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _error = 'Erreur lors du chargement des personnages';
+      _error = 'Error loading characters';
       _isLoading = false;
       notifyListeners();
     }
@@ -39,5 +43,18 @@ class HomeProvider extends ChangeNotifier {
         builder: (_) => DetailsScreen(character: character),
       ),
     );
+  }
+
+  void updateSearchQuery(String query) {
+    _searchQuery = query;
+    if (query.isEmpty) {
+      _filteredCharacters = _characters;
+    } else {
+      _filteredCharacters = _characters
+          .where((character) =>
+              (character['name'] as String).toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
+    notifyListeners();
   }
 } 

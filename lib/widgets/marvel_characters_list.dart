@@ -4,14 +4,14 @@ import 'marvel_character_card.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_strings.dart';
 
-class MarvelCharactersGrid extends StatelessWidget {
+class MarvelCharactersList extends StatelessWidget {
   final List<Map<String, dynamic>> characters;
   final bool isLoading;
   final String? error;
   final Function(Map<String, dynamic>) onCharacterTap;
   final Future<void> Function() onRefresh;
 
-  const MarvelCharactersGrid({
+  const MarvelCharactersList({
     Key? key,
     required this.characters,
     required this.isLoading,
