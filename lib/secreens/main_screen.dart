@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:orange_test/providers/navigation_provider.dart';
 import 'FavoritesScreen.dart';
 import 'HomeScreen.dart';
+import '../theme/app_colors.dart';
 
 class bottomNavBar extends StatefulWidget {
   const bottomNavBar({Key? key}) : super(key: key);
@@ -33,22 +34,24 @@ class _bottomNavBarState extends State<bottomNavBar> {
       child: Consumer<NavigationProvider>(
         builder: (context, navigationProvider, child) {
           return Scaffold(
-            body: PageView(
-              controller: _pageController,
-              onPageChanged: (index) {
-                navigationProvider.onPageChanged(index);
-              },
-              children: const [
-                HomeScreen(),
-                FavoritesScreen(),
-              ],
+            body: SafeArea(
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  navigationProvider.onPageChanged(index);
+                },
+                children: const [
+                  HomeScreen(),
+                  FavoritesScreen(),
+                ],
+              ),
             ),
             bottomNavigationBar: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.marvelWhite,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: AppColors.marvelBlack.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, -5),
                   ),
@@ -105,7 +108,7 @@ class _bottomNavBarState extends State<bottomNavBar> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFC69C6D).withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? AppColors.marvelRed.withOpacity(0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -113,7 +116,7 @@ class _bottomNavBarState extends State<bottomNavBar> {
           children: [
             Icon(
               icon,
-              color: isSelected ? const Color(0xFFC69C6D) : Colors.grey,
+              color: isSelected ? AppColors.marvelRed : AppColors.marvelGrey,
               size: isSelected ? 28 : 24,
             ),
             if (isSelected) ...[
@@ -121,7 +124,7 @@ class _bottomNavBarState extends State<bottomNavBar> {
               Text(
                 label,
                 style: const TextStyle(
-                  color: Color(0xFFC69C6D),
+                  color: AppColors.marvelRed,
                   fontWeight: FontWeight.w600,
                 ),
               ),
