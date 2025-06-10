@@ -5,6 +5,7 @@ import '../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/favorites_provider.dart';
 import '../widgets/marvel_character_card.dart';
+import '../widgets/search_bar_widget.dart';
 import 'DetailsScreen.dart';
 
 class FavoritesScreen extends StatefulWidget {
@@ -49,61 +50,71 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             );
           }
 
-          if (provider.favorites.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.favorite_border,
-                    size: 64.sp,
-                    color: AppColors.marvelRed.withOpacity(0.5),
-                  ),
-                  SizedBox(height: 16.h),
-                  Text(
-                    'No favorites yet',
-                    style: TextStyle(
-                      fontSize: 20.sp,
-                      color: AppColors.marvelWhite,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    'Add characters to your favorites',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      color: AppColors.marvelWhite.withOpacity(0.7),
-                    ),
-                  ),
-                ],
+          return Column(
+            children: [
+              SearchBarWidget(
+                hintText: 'Search favorites...',
+                searchQuery: provider.searchQuery,
+                onChanged: provider.updateSearchQuery,
+                onClear: () => provider.updateSearchQuery(''),
               ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () => provider.loadFavorites(),
-            color: AppColors.marvelRed,
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(vertical: 8.h),
-              itemCount: provider.favorites.length,
-              itemBuilder: (context, index) {
-                final character = provider.favorites[index];
-                if (character == null) return const SizedBox.shrink();
-                
-                return MarvelCharacterCard(
-                  character: character,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => DetailsScreen(character: character),
+              Expanded(
+                child: provider.favorites.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.favorite_border,
+                              size: 64.sp,
+                              color: AppColors.marvelRed.withOpacity(0.5),
+                            ),
+                            SizedBox(height: 16.h),
+                            Text(
+                              'No favorites yet',
+                              style: TextStyle(
+                                fontSize: 20.sp,
+                                color: AppColors.marvelWhite,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(height: 8.h),
+                            Text(
+                              'Add characters to your favorites',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: AppColors.marvelWhite.withOpacity(0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: () => provider.loadFavorites(),
+                        color: AppColors.marvelRed,
+                        child: ListView.builder(
+                          padding: EdgeInsets.symmetric(vertical: 8.h),
+                          itemCount: provider.favorites.length,
+                          itemBuilder: (context, index) {
+                            final character = provider.favorites[index];
+                            if (character == null) return const SizedBox.shrink();
+                            
+                            return MarvelCharacterCard(
+                              character: character,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => DetailsScreen(character: character),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
                       ),
-                    );
-                  },
-                );
-              },
-            ),
+              ),
+            ],
           );
         },
       ),

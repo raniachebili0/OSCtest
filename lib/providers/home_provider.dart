@@ -10,7 +10,7 @@ class HomeProvider extends ChangeNotifier {
   String? _error;
   String _searchQuery = '';
 
-  List<Map<String, dynamic>> get characters => _searchQuery.isEmpty ? _characters : _filteredCharacters;
+  List<Map<String, dynamic>> get characters => _filteredCharacters;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String get searchQuery => _searchQuery;
@@ -24,15 +24,36 @@ class HomeProvider extends ChangeNotifier {
       _isLoading = true;
       _error = null;
       notifyListeners();
+      
       final characters = await _apiService.getCharacters();
       _characters = characters.map((character) => character as Map<String, dynamic>).toList();
-      _filteredCharacters = _characters;
+      _filterCharacters();
+      
       _isLoading = false;
       notifyListeners();
     } catch (e) {
       _error = 'Error loading characters';
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  void updateSearchQuery(String query) {
+    _searchQuery = query;
+    _filterCharacters();
+    notifyListeners();
+  }
+
+  void _filterCharacters() {
+    if (_searchQuery.isEmpty) {
+      _filteredCharacters = List.from(_characters);
+    } else {
+      _filteredCharacters = _characters
+          .where((character) => character['name']
+              .toString()
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()))
+          .toList();
     }
   }
 
@@ -43,18 +64,5 @@ class HomeProvider extends ChangeNotifier {
         builder: (_) => DetailsScreen(character: character),
       ),
     );
-  }
-
-  void updateSearchQuery(String query) {
-    _searchQuery = query;
-    if (query.isEmpty) {
-      _filteredCharacters = _characters;
-    } else {
-      _filteredCharacters = _characters
-          .where((character) =>
-              (character['name'] as String).toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    }
-    notifyListeners();
   }
 } 

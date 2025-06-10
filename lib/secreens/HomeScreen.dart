@@ -6,6 +6,7 @@ import '../theme/app_strings.dart';
 import '../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/home_provider.dart';
+import '../widgets/search_bar_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -65,8 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Scaffold(
               backgroundColor: Colors.transparent,
-              appBar:
-              AppBar(
+              appBar: AppBar(
                 backgroundColor: AppColors.marvelBlue.withOpacity(0.95),
                 elevation: 4,
                 title: Column(
@@ -80,24 +80,35 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontSize: 24,
                       ),
                     ),
-
                   ],
                 ),
                 centerTitle: true,
                 shadowColor: AppColors.marvelRed.withOpacity(0.15),
                 toolbarHeight: 64,
               ),
-              body: provider.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : provider.error != null
-                      ? Center(child: Text(provider.error!))
-                      : MarvelCharactersList(
-                          characters: provider.characters,
-                          isLoading: provider.isLoading,
-                          error: provider.error,
-                          onCharacterTap: (character) => provider.onCharacterTap(context, character),
-                          onRefresh: provider.loadCharacters,
-                        ),
+              body: Column(
+                children: [
+                  SearchBarWidget(
+                    hintText: 'Search characters...',
+                    searchQuery: provider.searchQuery,
+                    onChanged: provider.updateSearchQuery,
+                    onClear: () => provider.updateSearchQuery(''),
+                  ),
+                  Expanded(
+                    child: provider.isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : provider.error != null
+                            ? Center(child: Text(provider.error!))
+                            : MarvelCharactersList(
+                                characters: provider.characters,
+                                isLoading: provider.isLoading,
+                                error: provider.error,
+                                onCharacterTap: (character) => provider.onCharacterTap(context, character),
+                                onRefresh: provider.loadCharacters,
+                              ),
+                  ),
+                ],
+              ),
             ),
           );
         },

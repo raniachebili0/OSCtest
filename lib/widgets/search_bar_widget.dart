@@ -3,15 +3,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../theme/app_colors.dart';
 
 class SearchBarWidget extends StatelessWidget {
-  final TextEditingController controller;
   final String hintText;
+  final String searchQuery;
   final Function(String) onChanged;
+  final VoidCallback onClear;
 
   const SearchBarWidget({
     Key? key,
-    required this.controller,
     required this.hintText,
+    required this.searchQuery,
     required this.onChanged,
+    required this.onClear,
   }) : super(key: key);
 
   @override
@@ -30,8 +32,8 @@ class SearchBarWidget extends StatelessWidget {
         ],
       ),
       child: TextField(
-        controller: controller,
         onChanged: onChanged,
+        controller: TextEditingController(text: searchQuery),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
@@ -43,17 +45,14 @@ class SearchBarWidget extends StatelessWidget {
             color: AppColors.marvelRed,
             size: 20.w,
           ),
-          suffixIcon: controller.text.isNotEmpty
+          suffixIcon: searchQuery.isNotEmpty
               ? IconButton(
                   icon: Icon(
                     Icons.clear,
                     color: AppColors.marvelGrey,
                     size: 20.w,
                   ),
-                  onPressed: () {
-                    controller.clear();
-                    onChanged('');
-                  },
+                  onPressed: onClear,
                 )
               : null,
           border: InputBorder.none,

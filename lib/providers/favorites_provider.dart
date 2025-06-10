@@ -8,7 +8,7 @@ class FavoritesProvider extends ChangeNotifier {
   bool _isLoading = false;
   String _searchQuery = '';
 
-  List<Map<String, dynamic>> get favorites => _searchQuery.isEmpty ? _favorites : _filteredFavorites;
+  List<Map<String, dynamic>> get favorites => _filteredFavorites;
   bool get isLoading => _isLoading;
   String get searchQuery => _searchQuery;
 
@@ -18,13 +18,32 @@ class FavoritesProvider extends ChangeNotifier {
 
     try {
       _favorites = await _dbHelper.getFavorites();
-      _filteredFavorites = _favorites;
+      _filterFavorites();
     } catch (e) {
       debugPrint('Error loading favorites: $e');
     }
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  void updateSearchQuery(String query) {
+    _searchQuery = query;
+    _filterFavorites();
+    notifyListeners();
+  }
+
+  void _filterFavorites() {
+    if (_searchQuery.isEmpty) {
+      _filteredFavorites = List.from(_favorites);
+    } else {
+      _filteredFavorites = _favorites
+          .where((character) => character['name']
+              .toString()
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()))
+          .toList();
+    }
   }
 
   Future<void> toggleFavorite(Map<String, dynamic> character) async {
@@ -51,18 +70,5 @@ class FavoritesProvider extends ChangeNotifier {
       debugPrint('Error checking favorite status: $e');
       return false;
     }
-  }
-
-  void updateSearchQuery(String query) {
-    _searchQuery = query;
-    if (query.isEmpty) {
-      _filteredFavorites = _favorites;
-    } else {
-      _filteredFavorites = _favorites
-          .where((character) =>
-              (character['name'] as String).toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    }
-    notifyListeners();
   }
 } 
