@@ -40,4 +40,19 @@ class MarvelApiService {
       throw Exception('Failed to load characters');
     }
   }
+
+  Future<List<dynamic>> getCharacterComics(int characterId, {int limit = 10}) async {
+    final url = buildUri('/characters/$characterId/comics', {
+      'limit': limit.toString(),
+      'orderBy': '-onsaleDate',
+    });
+
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      return body['data']['results'];
+    } else {
+      throw Exception('Failed to load comics');
+    }
+  }
 }

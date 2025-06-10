@@ -4,6 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../providers/details_screen_provider.dart';
+import '../widgets/comic_card.dart';
 
 class DetailsScreen extends StatelessWidget {
   final Map<String, dynamic> character;
@@ -74,7 +75,53 @@ class DetailsScreen extends StatelessWidget {
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    // Ajoute ici d'autres infos si besoin (comics, etc.)
+                    SizedBox(height: 32.h),
+                    Text(
+                      'Comics',
+                      style: TextStyle(
+                        fontFamily: 'Anton',
+                        fontSize: 24.sp,
+                        color: AppColors.marvelRed,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    if (provider.isLoadingComics)
+                      const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.marvelRed,
+                        ),
+                      )
+                    else if (provider.comicsError != null)
+                      Center(
+                        child: Text(
+                          provider.comicsError!,
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: AppColors.marvelRed,
+                          ),
+                        ),
+                      )
+                    else if (provider.comics.isEmpty)
+                      Center(
+                        child: Text(
+                          'No comics available',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: AppColors.marvelWhite,
+                          ),
+                        ),
+                      )
+                    else
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: provider.comics.length,
+                        itemBuilder: (context, index) {
+                          final comic = provider.comics[index];
+                          return ComicCard(comic: comic);
+                        },
+                      ),
                   ],
                 ),
               ),
