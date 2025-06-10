@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
+import 'marvel_api_exception.dart';
 
 class MarvelApiService {
   final String baseUrl = "https://gateway.marvel.com/v1/public";
@@ -27,32 +28,86 @@ class MarvelApiService {
     return Uri.parse('$baseUrl$endpoint').replace(queryParameters: queryParams);
   }
 
-  Future<List<dynamic>> getCharacters({int limit = 20}) async {
-    final url = buildUri('/characters', {
-      'limit': limit.toString(),
-    });
-
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final body = jsonDecode(response.body);
-      return body['data']['results'];
+  Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      try {
+        final body = jsonDecode(response.body);
+        if (body['code'] != null && body['code'] != 200) {
+          throw MarvelApiException.fromResponse(body);
+        }
+        return body;
+      } catch (e) {
+        if (e is MarvelApiException) rethrow;
+        throw MarvelApiException(
+          message: 'Failed to parse response: ${e.toString()}',
+          statusCode: response.statusCode,
+        );
+      }
     } else {
-      throw Exception('Failed to load characters');
+      try {
+        final errorBody = jsonDecode(response.body);
+        throw MarvelApiException.fromResponse(errorBody);
+      } catch (e) {
+        throw MarvelApiException(
+          message: 'HTTP Error: ${response.statusCode}',
+          statusCode: response.statusCode,
+        );
+      }
+    }
+  }
+
+  Future<List<dynamic>> getCharacters({int limit = 20}) async {
+    try {
+      final url = buildUri('/characters', {
+        'limit': limit.toString(),
+      });
+
+      final response = await http.get(url).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw MarvelApiException(
+            message: 'Request timed out',
+            statusCode: 408,
+          );
+        },
+      );
+
+      final body = await _handleResponse(response);
+      return body['data']['results'] as List<dynamic>;
+    } on MarvelApiException {
+      rethrow;
+    } catch (e) {
+      throw MarvelApiException(
+        message: 'Failed to load characters: ${e.toString()}',
+      );
     }
   }
 
   Future<List<dynamic>> getCharacterComics(int characterId, {int limit = 10}) async {
-    final url = buildUri('/characters/$characterId/comics', {
-      'limit': limit.toString(),
-      'orderBy': '-onsaleDate',
-    });
+    try {
+      final url = buildUri('/characters/$characterId/comics', {
+        'limit': limit.toString(),
+        'orderBy': '-onsaleDate',
+      });
 
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final body = jsonDecode(response.body);
-      return body['data']['results'];
-    } else {
-      throw Exception('Failed to load comics');
+      final response = await http.get(url).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw MarvelApiException(
+            message: 'Request timed out',
+            statusCode: 408,
+          );
+        },
+      );
+
+      final body = await _handleResponse(response);
+      return body['data']['results'] as List<dynamic>;
+    } on MarvelApiException {
+      rethrow;
+    } catch (e) {
+      throw MarvelApiException(
+        message: 'Failed to load comics: ${e.toString()}',
+      );
     }
   }
 }
