@@ -4,6 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../providers/details_screen_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/comic_card.dart';
 import '../models/MarvelCharacter.dart';
 
@@ -15,23 +16,37 @@ class DetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => DetailsScreenProvider(character),
-      child: Consumer<DetailsScreenProvider>(
-        builder: (context, provider, _) {
+      child: Consumer2<DetailsScreenProvider, ThemeProvider>(
+        builder: (context, provider, themeProvider, _) {
+          final isDarkMode = themeProvider.isDarkMode;
+
           return Scaffold(
-            backgroundColor: AppColors.marvelBlue,
+            backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
             appBar: AppBar(
-              backgroundColor: AppColors.marvelBlue,
+              backgroundColor: isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
               elevation: 2,
               title: Text(
                 'Marvel Details',
                 style: TextStyle(
-                  color: AppColors.marvelRed,
+                  color: isDarkMode ? AppColors.darkText : AppColors.lightText,
                   fontFamily: 'Anton',
                   fontWeight: FontWeight.bold,
                   fontSize: 24,
                 ),
               ),
               centerTitle: true,
+              iconTheme: IconThemeData(
+                color: isDarkMode ? AppColors.darkText : AppColors.lightText,
+              ),
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                    color: isDarkMode ? AppColors.darkText : AppColors.lightText,
+                  ),
+                  onPressed: () => themeProvider.toggleTheme(),
+                ),
+              ],
             ),
             body: SingleChildScrollView(
               child: Column(
@@ -59,7 +74,7 @@ class DetailsScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 24.sp,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.marvelRed,
+                            color: isDarkMode ? AppColors.darkText : AppColors.lightText,
                           ),
                         ),
                         SizedBox(height: 8.h),
@@ -67,7 +82,7 @@ class DetailsScreen extends StatelessWidget {
                           provider.description,
                           style: TextStyle(
                             fontSize: 16.sp,
-                            color: AppColors.marvelGrey,
+                            color: isDarkMode ? AppColors.darkText.withOpacity(0.8) : AppColors.lightText.withOpacity(0.8),
                           ),
                         ),
                         SizedBox(height: 24.h),
@@ -76,14 +91,14 @@ class DetailsScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 20.sp,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.marvelRed,
+                            color: isDarkMode ? AppColors.darkText : AppColors.lightText,
                           ),
                         ),
                         SizedBox(height: 16.h),
                         if (provider.isLoadingComics)
-                          const Center(
+                          Center(
                             child: CircularProgressIndicator(
-                              color: AppColors.marvelRed,
+                              color: isDarkMode ? AppColors.darkText : AppColors.lightText,
                             ),
                           )
                         else if (provider.comicsError != null)
@@ -92,7 +107,7 @@ class DetailsScreen extends StatelessWidget {
                               provider.comicsError!,
                               style: TextStyle(
                                 fontSize: 16.sp,
-                                color: AppColors.marvelRed,
+                                color: isDarkMode ? AppColors.darkText : AppColors.lightText,
                               ),
                             ),
                           )
@@ -102,7 +117,8 @@ class DetailsScreen extends StatelessWidget {
                               'No comics found',
                               style: TextStyle(
                                 fontSize: 16.sp,
-                                color: AppColors.marvelGrey,
+                                color: isDarkMode ? AppColors.darkText.withOpacity(0.8) : AppColors.lightText.withOpacity(0.8),
+                                fontStyle: FontStyle.italic,
                               ),
                             ),
                           )

@@ -35,6 +35,5 @@ class DetailsScreenProvider extends ChangeNotifier {
       _comicsError = 'Failed to load comics';
       _isLoadingComics = false;
       notifyListeners();
-    }
-  }
+    }  }
 } 

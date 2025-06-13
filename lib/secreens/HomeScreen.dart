@@ -6,6 +6,7 @@ import '../theme/app_strings.dart';
 import '../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/home_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/search_bar_widget.dart';
 import '../models/MarvelCharacter.dart';
 
@@ -54,51 +55,67 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => HomeProvider(),
-      child: Consumer<HomeProvider>(
-        builder: (context, provider, _) {
-          return Scaffold(
-            backgroundColor: AppColors.marvelBlue,
-            appBar: AppBar(
-              backgroundColor: AppColors.marvelBlue,
-              elevation: 2,
-              title: Text(
-                'Marvel Characters',
-                style: TextStyle(
-                  color: AppColors.marvelRed,
-                  fontFamily: 'Anton',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                ),
-              ),
-              centerTitle: true,
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final homeProvider = Provider.of<HomeProvider>(context);
+    
+    return Scaffold(
+      backgroundColor: themeProvider.isDarkMode ? AppColors.darkBackground : AppColors.lightBackground,
+      appBar: AppBar(
+        backgroundColor: themeProvider.isDarkMode ? AppColors.darkSurface : AppColors.lightSurface,
+        elevation: 2,
+        title: Text(
+          'Marvel Characters',
+          style: TextStyle(
+            color: themeProvider.isDarkMode ? AppColors.darkText : AppColors.lightText,
+            fontFamily: 'Anton',
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              color: themeProvider.isDarkMode ? AppColors.darkText : AppColors.lightText,
             ),
-            body: Column(
-              children: [
-                SearchBarWidget(
-                  hintText: 'Search characters...',
-                  searchQuery: provider.searchQuery,
-                  onChanged: provider.updateSearchQuery,
-                  onClear: () => provider.updateSearchQuery(''),
-                ),
-                Expanded(
-                  child: provider.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : provider.error != null
-                          ? Center(child: Text(provider.error!))
-                          : MarvelCharactersList(
-                              characters: provider.characters,
-                              isLoading: provider.isLoading,
-                              error: provider.error,
-                              onCharacterTap: (character) => provider.onCharacterTap(context, character),
-                              onRefresh: provider.loadCharacters,
-                            ),
-                ),
-              ],
-            ),
-          );
-        },
+            onPressed: () => themeProvider.toggleTheme(),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          SearchBarWidget(
+            hintText: 'Search characters...',
+            searchQuery: homeProvider.searchQuery,
+            onChanged: homeProvider.updateSearchQuery,
+            onClear: () => homeProvider.updateSearchQuery(''),
+          ),
+          Expanded(
+            child: homeProvider.isLoading
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.marvelRed,
+                    ),
+                  )
+                : homeProvider.error != null
+                    ? Center(
+                        child: Text(
+                          homeProvider.error!,
+                          style: TextStyle(
+                            color: themeProvider.isDarkMode ? AppColors.darkText : AppColors.lightText,
+                          ),
+                        ),
+                      )
+                    : MarvelCharactersList(
+                        characters: homeProvider.characters,
+                        isLoading: homeProvider.isLoading,
+                        error: homeProvider.error,
+                        onCharacterTap: (character) => homeProvider.onCharacterTap(context, character),
+                        onRefresh: homeProvider.loadCharacters,
+                      ),
+          ),
+        ],
       ),
     );
   }

@@ -6,8 +6,10 @@ class NavigationProvider extends ChangeNotifier {
   int get currentIndex => _currentIndex;
 
   void setIndex(int index) {
-    _currentIndex = index;
-    notifyListeners();
+    if (_currentIndex != index) {
+      _currentIndex = index;
+      notifyListeners();
+    }
   }
 
   void onPageChanged(int index) {

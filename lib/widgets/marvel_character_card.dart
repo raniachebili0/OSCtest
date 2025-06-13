@@ -5,6 +5,7 @@ import 'package:orange_test/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/favorites_provider.dart';
 import '../models/MarvelCharacter.dart';
+import '../secreens/DetailsScreen.dart';
 
 import '../theme/app_colors.dart';
 
@@ -14,270 +15,108 @@ class MarvelCharacterCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const MarvelCharacterCard({
-    super.key,
+    Key? key,
     required this.character,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = '${character.thumbnail.path}.${character.thumbnail.extension}';
-    final name = character.name;
-    final description = character.description;
+    final favoritesProvider = Provider.of<FavoritesProvider>(context);
+    final isFavorite = favoritesProvider.isFavorite(character.id);
 
-    return Consumer<FavoritesProvider>(
-      builder: (context, favoritesProvider, _) {
-        return FutureBuilder<bool>(
-          future: favoritesProvider.isFavorite(character.id),
-          builder: (context, snapshot) {
-            final isFavorite = snapshot.data ?? false;
-            
-            return GestureDetector(
-              onTap: onTap,
-              child: Container(
-                width: double.infinity,
-                margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailsScreen(character: character),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(12.r),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                Hero(
+                  tag: 'character_${character.id}_${character.thumbnail.path}',
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
+                    child: Image.network(
+                      '${character.thumbnail.path}.${character.thumbnail.extension}',
+                      height: 200.h,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 200.h,
+                          width: double.infinity,
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.error),
+                        );
+                      },
                     ),
-                  ],
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    // Top Section with Image and Basic Info
-                    Container(
-                      height: 160.h,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.marvelRed.withOpacity(0.1),
-                            AppColors.marvelWhite,
-                          ],
-                        ),
-                      ),
-                      child: Stack(
-                        children: [
-                          // Character Image
-                          Positioned(
-                            left: 16.w,
-                            top: 16.h,
-                            child: Container(
-                              width: 120.w,
-                              height: 140.h,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.marvelBlack.withOpacity(0.1),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: Hero(
-                                  tag: imageUrl,
-                                  child: Image.network(
-                                    imageUrl,
-                                    width: double.infinity,
-                                    height: 300.h,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => Container(
-                                      color: AppColors.marvelGrey.withOpacity(0.1),
-                                      height: 300.h,
-                                      child: Icon(Icons.person, size: 80.sp, color: AppColors.marvelGrey),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Character Info
-                          Positioned(
-                            right: 16.w,
-                            top: 16.h,
-                            child: Container(
-                              width: 200.w,
-                              padding: EdgeInsets.all(12.w),
-                              decoration: BoxDecoration(
-                                color: AppColors.marvelWhite.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.marvelBlack.withOpacity(0.05),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    name,
-                                    style: TextStyle(
-                                      fontSize: 20.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.marvelRed,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  SizedBox(height: 4.h),
-                                  Text(
-                                    "Marvel Character",
-                                    style: TextStyle(
-                                      fontSize: 14.sp,
-                                      color: AppColors.marvelGrey,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8.h),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 8.w,
-                                          vertical: 4.h,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.marvelRed.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.star,
-                                              size: 16.w,
-                                              color: AppColors.marvelRed,
-                                            ),
-                                            SizedBox(width: 4.w),
-                                            Text(
-                                              "Hero",
-                                              style: TextStyle(
-                                                fontSize: 14.sp,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.marvelRed,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                Positioned(
+                  top: 8.h,
+                  right: 8.w,
+                  child: IconButton(
+                    icon: Icon(
+                      favoritesProvider.isFavorite(character.id) ? Icons.favorite : Icons.favorite_border,
+                      color: favoritesProvider.isFavorite(character.id) ? AppColors.marvelRed : Colors.white,
                     ),
-                    // Bottom Section with Additional Info
-                    Container(
-                      padding: EdgeInsets.all(16.w),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12.w,
-                                  vertical: 6.h,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.marvelRed.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.info_outline,
-                                      size: 14.w,
-                                      color: AppColors.marvelRed,
-                                    ),
-                                    SizedBox(width: 4.w),
-                                    Text(
-                                      "View Details",
-                                      style: TextStyle(
-                                        fontSize: 12.sp,
-                                        color: AppColors.marvelRed,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () async {
-                                  await favoritesProvider.toggleFavorite(character);
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          isFavorite ? 'Removed from favorites' : 'Added to favorites',
-                                          style: const TextStyle(color: Colors.white),
-                                        ),
-                                        backgroundColor: AppColors.marvelRed,
-                                        duration: const Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 12.w,
-                                    vertical: 6.h,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.marvelRed.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                                        size: 14.w,
-                                        color: AppColors.marvelRed,
-                                      ),
-                                      SizedBox(width: 4.w),
-                                      Text(
-                                        isFavorite ? "Remove from Favorites" : "Add to Favorites",
-                                        style: TextStyle(
-                                          fontSize: 12.sp,
-                                          color: AppColors.marvelRed,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    onPressed: () {
+                      if (favoritesProvider.isFavorite(character.id)) {
+                        favoritesProvider.removeFavorite(character.id);
+                      } else {
+                        favoritesProvider.addFavorite(character);
+                      }
+                    },
+                  ),
                 ),
+              ],
+            ),
+            Padding(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    character.name,
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    character.description.isNotEmpty
+                        ? character.description
+                        : 'No description available',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey[600],
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-            );
-          },
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 } 

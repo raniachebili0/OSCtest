@@ -8,7 +8,6 @@ import '../models/MarvelCharacter.dart';
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
-  static const int _databaseVersion = 2; // Increment version number
 
   factory DatabaseHelper() => _instance;
 
@@ -21,102 +20,62 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    // Delete existing database if version is old
-    await _deleteOldDatabase();
-    
     String path = join(await getDatabasesPath(), 'marvel_favorites.db');
     return await openDatabase(
       path,
-      version: _databaseVersion,
+      version: 1,
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
+      onConfigure: _onConfigure,
     );
   }
 
-  Future<void> _deleteOldDatabase() async {
-    try {
-      final dbPath = await getDatabasesPath();
-      final dbFile = File(join(dbPath, 'marvel_favorites.db'));
-      if (await dbFile.exists()) {
-        await dbFile.delete();
-      }
-    } catch (e) {
-      print('Error deleting old database: $e');
-    }
+  Future<void> _onConfigure(Database db) async {
+    await db.execute('PRAGMA foreign_keys = ON');
   }
 
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE favorites(
-        id INTEGER PRIMARY KEY,
-        character_id INTEGER,
-        character_data TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        character_id INTEGER PRIMARY KEY,
+        character_data TEXT NOT NULL
       )
     ''');
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // Drop the old table and create the new one
-      await db.execute('DROP TABLE IF EXISTS favorites');
-      await _onCreate(db, newVersion);
-    }
-  }
-
-  Future<int> insertFavorite(MarvelCharacter character) async {
+  Future<void> insertFavorite(MarvelCharacter character) async {
     final db = await database;
-    final characterData = {
-      'id': character.id,
-      'name': character.name,
-      'description': character.description,
-      'modified': character.modified,
-      'thumbnail': {
-        'path': character.thumbnail.path,
-        'extension': character.thumbnail.extension,
-      },
-      'resourceURI': character.resourceURI,
-      'comics': {
-        'available': character.comics.available,
-        'collectionURI': character.comics.collectionURI,
-        'items': character.comics.items.map((item) => {
-          'resourceURI': item.resourceURI,
-          'name': item.name,
-        }).toList(),
-      },
-    };
-    
-    return await db.insert('favorites', {
-      'character_id': character.id,
-      'character_data': jsonEncode(characterData),
-    });
-  }
-
-  Future<List<Map<String, dynamic>>> getFavorites() async {
-    final db = await database;
-    final List<Map<String, dynamic>> results = await db.query(
+    await db.insert(
       'favorites',
-      orderBy: 'created_at DESC',
+      {
+        'character_id': character.id,
+        'character_data': jsonEncode(character.toJson()),
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    
-    return results.map((row) {
-      final characterData = jsonDecode(row['character_data'] as String);
-      return characterData as Map<String, dynamic>;
-    }).toList();
   }
 
-  Future<int> deleteFavorite(int characterId) async {
+  Future<void> deleteFavorite(int characterId) async {
     final db = await database;
-    return await db.delete(
+    await db.delete(
       'favorites',
       where: 'character_id = ?',
       whereArgs: [characterId],
     );
   }
 
+  Future<List<MarvelCharacter>> getFavorites() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('favorites');
+
+    return List.generate(maps.length, (i) {
+      final data = jsonDecode(maps[i]['character_data'] as String);
+      return MarvelCharacter.fromJson(data);
+    });
+  }
+
   Future<bool> isFavorite(int characterId) async {
     final db = await database;
-    final result = await db.query(
+    final List<Map<String, dynamic>> result = await db.query(
       'favorites',
       where: 'character_id = ?',
       whereArgs: [characterId],
