@@ -4,12 +4,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:orange_test/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/favorites_provider.dart';
+import '../models/MarvelCharacter.dart';
 
 import '../theme/app_colors.dart';
 
 
 class MarvelCharacterCard extends StatelessWidget {
-  final Map<String, dynamic> character;
+  final MarvelCharacter character;
   final VoidCallback onTap;
 
   const MarvelCharacterCard({
@@ -20,15 +21,14 @@ class MarvelCharacterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final thumbnail = character['thumbnail'] as Map<String, dynamic>;
-    final imageUrl = '${thumbnail['path']}.${thumbnail['extension']}';
-    final name = character['name'] as String;
-    final description = character['description'] as String? ?? '';
+    final imageUrl = '${character.thumbnail.path}.${character.thumbnail.extension}';
+    final name = character.name;
+    final description = character.description;
 
     return Consumer<FavoritesProvider>(
       builder: (context, favoritesProvider, _) {
         return FutureBuilder<bool>(
-          future: favoritesProvider.isFavorite(character['id']),
+          future: favoritesProvider.isFavorite(character.id),
           builder: (context, snapshot) {
             final isFavorite = snapshot.data ?? false;
             
@@ -87,7 +87,7 @@ class MarvelCharacterCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(20),
                                 child: Hero(
                                   tag: imageUrl,
-                                  child:Image.network(
+                                  child: Image.network(
                                     imageUrl,
                                     width: double.infinity,
                                     height: 300.h,
@@ -188,16 +188,6 @@ class MarvelCharacterCard extends StatelessWidget {
                       padding: EdgeInsets.all(16.w),
                       child: Column(
                         children: [
-                          // Text(
-                          //   description,
-                          //   style: TextStyle(
-                          //     fontSize: 13.sp,
-                          //     color: AppColors.marvelGrey,
-                          //   ),
-                          //   maxLines: 2,
-                          //   overflow: TextOverflow.ellipsis,
-                          // ),
-                          // SizedBox(height: 12.h),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [

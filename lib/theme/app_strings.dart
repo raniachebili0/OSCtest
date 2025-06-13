@@ -9,5 +9,6 @@ class AppStrings {
   static const String viewDetails = 'View Details';
   static const String addToFavorites = 'Add to Favorites';
   static const String noDescription = 'No description available.';
+  static const String noFavorites = 'No favorites yet';
   // Ajoutez d'autres chaînes si besoin
 } 

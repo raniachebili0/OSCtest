@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import '../services/MarvelApiService.dart';
 import '../secreens/DetailsScreen.dart';
+import '../models/MarvelCharacter.dart';
 
 class HomeProvider extends ChangeNotifier {
   final MarvelApiService _apiService = MarvelApiService();
-  List<Map<String, dynamic>> _characters = [];
-  List<Map<String, dynamic>> _filteredCharacters = [];
+  List<MarvelCharacter> _characters = [];
+  List<MarvelCharacter> _filteredCharacters = [];
   bool _isLoading = true;
   String? _error;
   String _searchQuery = '';
 
-  List<Map<String, dynamic>> get characters => _filteredCharacters;
+  List<MarvelCharacter> get characters => _filteredCharacters;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String get searchQuery => _searchQuery;
@@ -25,10 +26,8 @@ class HomeProvider extends ChangeNotifier {
       _error = null;
       notifyListeners();
       
-      final characters = await _apiService.getCharacters();
-      _characters = characters.map((character) => character as Map<String, dynamic>).toList();
+      _characters = await _apiService.getCharacters();
       _filterCharacters();
-      
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -49,15 +48,14 @@ class HomeProvider extends ChangeNotifier {
       _filteredCharacters = List.from(_characters);
     } else {
       _filteredCharacters = _characters
-          .where((character) => character['name']
-              .toString()
+          .where((character) => character.name
               .toLowerCase()
               .contains(_searchQuery.toLowerCase()))
           .toList();
     }
   }
 
-  void onCharacterTap(BuildContext context, Map<String, dynamic> character) {
+  void onCharacterTap(BuildContext context, MarvelCharacter character) {
     Navigator.push(
       context,
       MaterialPageRoute(

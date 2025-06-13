@@ -7,6 +7,7 @@ import '../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/home_provider.dart';
 import '../widgets/search_bar_widget.dart';
+import '../models/MarvelCharacter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final MarvelApiService _apiService = MarvelApiService();
-  List<Map<String, dynamic>> _characters = [];
+  List<MarvelCharacter> _characters = [];
   bool _isLoading = true;
   String? _error;
 
@@ -36,19 +37,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final characters = await _apiService.getCharacters();
       setState(() {
-        _characters = characters.map((character) => character as Map<String, dynamic>).toList();
+        _characters = characters;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _error = 'Erreur lors du chargement des personnages';
+        _error = 'Error loading characters';
         _isLoading = false;
       });
     }
   }
 
-  void _onCharacterTap(Map<String, dynamic> character) {
-    print('Character tapped: ${character['name']}');
+  void _onCharacterTap(MarvelCharacter character) {
+    print('Character tapped: ${character.name}');
   }
 
   @override
@@ -57,58 +58,44 @@ class _HomeScreenState extends State<HomeScreen> {
       create: (_) => HomeProvider(),
       child: Consumer<HomeProvider>(
         builder: (context, provider, _) {
-          return Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/marvel-background-web.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              appBar: AppBar(
-                backgroundColor: AppColors.marvelBlue.withOpacity(0.95),
-                elevation: 4,
-                title: Column(
-                  children: [
-                    Text(
-                      'Marvel HOME',
-                      style: TextStyle(
-                        color: AppColors.marvelRed,
-                        fontFamily: 'Anton',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24,
-                      ),
-                    ),
-                  ],
+          return Scaffold(
+            backgroundColor: AppColors.marvelBlue,
+            appBar: AppBar(
+              backgroundColor: AppColors.marvelBlue,
+              elevation: 2,
+              title: Text(
+                'Marvel Characters',
+                style: TextStyle(
+                  color: AppColors.marvelRed,
+                  fontFamily: 'Anton',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
                 ),
-                centerTitle: true,
-                shadowColor: AppColors.marvelRed.withOpacity(0.15),
-                toolbarHeight: 64,
               ),
-              body: Column(
-                children: [
-                  SearchBarWidget(
-                    hintText: 'Search characters...',
-                    searchQuery: provider.searchQuery,
-                    onChanged: provider.updateSearchQuery,
-                    onClear: () => provider.updateSearchQuery(''),
-                  ),
-                  Expanded(
-                    child: provider.isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : provider.error != null
-                            ? Center(child: Text(provider.error!))
-                            : MarvelCharactersList(
-                                characters: provider.characters,
-                                isLoading: provider.isLoading,
-                                error: provider.error,
-                                onCharacterTap: (character) => provider.onCharacterTap(context, character),
-                                onRefresh: provider.loadCharacters,
-                              ),
-                  ),
-                ],
-              ),
+              centerTitle: true,
+            ),
+            body: Column(
+              children: [
+                SearchBarWidget(
+                  hintText: 'Search characters...',
+                  searchQuery: provider.searchQuery,
+                  onChanged: provider.updateSearchQuery,
+                  onClear: () => provider.updateSearchQuery(''),
+                ),
+                Expanded(
+                  child: provider.isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : provider.error != null
+                          ? Center(child: Text(provider.error!))
+                          : MarvelCharactersList(
+                              characters: provider.characters,
+                              isLoading: provider.isLoading,
+                              error: provider.error,
+                              onCharacterTap: (character) => provider.onCharacterTap(context, character),
+                              onRefresh: provider.loadCharacters,
+                            ),
+                ),
+              ],
             ),
           );
         },

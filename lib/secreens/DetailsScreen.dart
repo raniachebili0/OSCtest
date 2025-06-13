@@ -5,9 +5,10 @@ import '../theme/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../providers/details_screen_provider.dart';
 import '../widgets/comic_card.dart';
+import '../models/MarvelCharacter.dart';
 
 class DetailsScreen extends StatelessWidget {
-  final Map<String, dynamic> character;
+  final MarvelCharacter character;
   const DetailsScreen({Key? key, required this.character}) : super(key: key);
 
   @override
@@ -33,97 +34,92 @@ class DetailsScreen extends StatelessWidget {
               centerTitle: true,
             ),
             body: SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.all(16.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Hero(
-                      tag: provider.imageUrl,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: Image.network(
-                          provider.imageUrl,
-                          width: double.infinity,
-                          height: 300.h,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: AppColors.marvelGrey.withOpacity(0.1),
-                            height: 300.h,
-                            child: Icon(Icons.person, size: 80.sp, color: AppColors.marvelGrey),
-                          ),
-                        ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Character Image
+                  Container(
+                    width: double.infinity,
+                    height: 300.h,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(provider.imageUrl),
+                        fit: BoxFit.cover,
                       ),
                     ),
-                    SizedBox(height: 24.h),
-                    Text(
-                      provider.name,
-                      style: TextStyle(
-                        fontFamily: 'Anton',
-                        fontSize: 32.sp,
-                        color: AppColors.marvelRed,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 16.h),
-                    Text(
-                      provider.description.isNotEmpty ? provider.description : AppStrings.noDescription,
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        color: AppColors.marvelWhite,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 32.h),
-                    Text(
-                      'Comics',
-                      style: TextStyle(
-                        fontFamily: 'Anton',
-                        fontSize: 24.sp,
-                        color: AppColors.marvelRed,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 16.h),
-                    if (provider.isLoadingComics)
-                      const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.marvelRed,
-                        ),
-                      )
-                    else if (provider.comicsError != null)
-                      Center(
-                        child: Text(
-                          provider.comicsError!,
+                  ),
+                  // Character Info
+                  Padding(
+                    padding: EdgeInsets.all(16.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          provider.name,
                           style: TextStyle(
-                            fontSize: 16.sp,
+                            fontSize: 24.sp,
+                            fontWeight: FontWeight.bold,
                             color: AppColors.marvelRed,
                           ),
                         ),
-                      )
-                    else if (provider.comics.isEmpty)
-                      Center(
-                        child: Text(
-                          'No comics available',
+                        SizedBox(height: 8.h),
+                        Text(
+                          provider.description,
                           style: TextStyle(
                             fontSize: 16.sp,
-                            color: AppColors.marvelWhite,
+                            color: AppColors.marvelGrey,
                           ),
                         ),
-                      )
-                    else
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: provider.comics.length,
-                        itemBuilder: (context, index) {
-                          final comic = provider.comics[index];
-                          return ComicCard(comic: comic);
-                        },
-                      ),
-                  ],
-                ),
+                        SizedBox(height: 24.h),
+                        Text(
+                          'Comics',
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.marvelRed,
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+                        if (provider.isLoadingComics)
+                          const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.marvelRed,
+                            ),
+                          )
+                        else if (provider.comicsError != null)
+                          Center(
+                            child: Text(
+                              provider.comicsError!,
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: AppColors.marvelRed,
+                              ),
+                            ),
+                          )
+                        else if (provider.comics.isEmpty)
+                          Center(
+                            child: Text(
+                              'No comics found',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: AppColors.marvelGrey,
+                              ),
+                            ),
+                          )
+                        else
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: provider.comics.length,
+                            itemBuilder: (context, index) {
+                              final comic = provider.comics[index];
+                              return ComicCard(comic: comic);
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           );

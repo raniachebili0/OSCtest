@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../theme/app_colors.dart';
 
-class SearchBarWidget extends StatelessWidget {
+class SearchBarWidget extends StatefulWidget {
   final String hintText;
   final String searchQuery;
   final Function(String) onChanged;
@@ -15,6 +15,33 @@ class SearchBarWidget extends StatelessWidget {
     required this.onChanged,
     required this.onClear,
   }) : super(key: key);
+
+  @override
+  State<SearchBarWidget> createState() => _SearchBarWidgetState();
+}
+
+class _SearchBarWidgetState extends State<SearchBarWidget> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.searchQuery);
+  }
+
+  @override
+  void didUpdateWidget(SearchBarWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchQuery != oldWidget.searchQuery) {
+      _controller.text = widget.searchQuery;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +59,10 @@ class SearchBarWidget extends StatelessWidget {
         ],
       ),
       child: TextField(
-        onChanged: onChanged,
-        controller: TextEditingController(text: searchQuery),
+        controller: _controller,
+        onChanged: widget.onChanged,
         decoration: InputDecoration(
-          hintText: hintText,
+          hintText: widget.hintText,
           hintStyle: TextStyle(
             color: AppColors.marvelGrey.withOpacity(0.7),
             fontSize: 14.sp,
@@ -45,14 +72,17 @@ class SearchBarWidget extends StatelessWidget {
             color: AppColors.marvelRed,
             size: 20.w,
           ),
-          suffixIcon: searchQuery.isNotEmpty
+          suffixIcon: widget.searchQuery.isNotEmpty
               ? IconButton(
                   icon: Icon(
                     Icons.clear,
                     color: AppColors.marvelGrey,
                     size: 20.w,
                   ),
-                  onPressed: onClear,
+                  onPressed: () {
+                    _controller.clear();
+                    widget.onClear();
+                  },
                 )
               : null,
           border: InputBorder.none,

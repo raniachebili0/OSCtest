@@ -3,6 +3,7 @@ import 'package:path/path.dart';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import '../models/MarvelCharacter.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -63,11 +64,31 @@ class DatabaseHelper {
     }
   }
 
-  Future<int> insertFavorite(Map<String, dynamic> character) async {
+  Future<int> insertFavorite(MarvelCharacter character) async {
     final db = await database;
+    final characterData = {
+      'id': character.id,
+      'name': character.name,
+      'description': character.description,
+      'modified': character.modified,
+      'thumbnail': {
+        'path': character.thumbnail.path,
+        'extension': character.thumbnail.extension,
+      },
+      'resourceURI': character.resourceURI,
+      'comics': {
+        'available': character.comics.available,
+        'collectionURI': character.comics.collectionURI,
+        'items': character.comics.items.map((item) => {
+          'resourceURI': item.resourceURI,
+          'name': item.name,
+        }).toList(),
+      },
+    };
+    
     return await db.insert('favorites', {
-      'character_id': character['id'],
-      'character_data': jsonEncode(character),
+      'character_id': character.id,
+      'character_data': jsonEncode(characterData),
     });
   }
 

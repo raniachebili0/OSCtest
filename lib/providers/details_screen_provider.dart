@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/MarvelApiService.dart';
+import '../models/MarvelCharacter.dart';
 
 class DetailsScreenProvider extends ChangeNotifier {
-  final Map<String, dynamic> character;
+  final MarvelCharacter character;
   final MarvelApiService _apiService = MarvelApiService();
   List<Map<String, dynamic>> _comics = [];
   bool _isLoadingComics = false;
@@ -12,12 +13,9 @@ class DetailsScreenProvider extends ChangeNotifier {
     loadComics();
   }
 
-  String get name => character['name'] as String;
-  String get description => (character['description'] as String?) ?? '';
-  String get imageUrl {
-    final thumbnail = character['thumbnail'] as Map<String, dynamic>;
-    return '${thumbnail['path']}.${thumbnail['extension']}';
-  }
+  String get name => character.name;
+  String get description => character.description;
+  String get imageUrl => '${character.thumbnail.path}.${character.thumbnail.extension}';
   List<Map<String, dynamic>> get comics => _comics;
   bool get isLoadingComics => _isLoadingComics;
   String? get comicsError => _comicsError;
@@ -28,7 +26,7 @@ class DetailsScreenProvider extends ChangeNotifier {
       _comicsError = null;
       notifyListeners();
 
-      final comics = await _apiService.getCharacterComics(character['id']);
+      final comics = await _apiService.getCharacterComics(character.id);
       _comics = comics.map((comic) => comic as Map<String, dynamic>).toList();
       
       _isLoadingComics = false;

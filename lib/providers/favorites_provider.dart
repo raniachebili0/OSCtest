@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
+import '../models/MarvelCharacter.dart';
 
 class FavoritesProvider extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper();
-  List<Map<String, dynamic>> _favorites = [];
-  List<Map<String, dynamic>> _filteredFavorites = [];
+  List<MarvelCharacter> _favorites = [];
+  List<MarvelCharacter> _filteredFavorites = [];
   bool _isLoading = false;
   String _searchQuery = '';
 
-  List<Map<String, dynamic>> get favorites => _filteredFavorites;
+  List<MarvelCharacter> get favorites => _filteredFavorites;
   bool get isLoading => _isLoading;
   String get searchQuery => _searchQuery;
 
@@ -17,7 +18,8 @@ class FavoritesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _favorites = await _dbHelper.getFavorites();
+      final rawFavorites = await _dbHelper.getFavorites();
+      _favorites = rawFavorites.map((json) => MarvelCharacter.fromJson(json)).toList();
       _filterFavorites();
     } catch (e) {
       debugPrint('Error loading favorites: $e');
@@ -38,20 +40,19 @@ class FavoritesProvider extends ChangeNotifier {
       _filteredFavorites = List.from(_favorites);
     } else {
       _filteredFavorites = _favorites
-          .where((character) => character['name']
-              .toString()
+          .where((character) => character.name
               .toLowerCase()
               .contains(_searchQuery.toLowerCase()))
           .toList();
     }
   }
 
-  Future<void> toggleFavorite(Map<String, dynamic> character) async {
+  Future<void> toggleFavorite(MarvelCharacter character) async {
     try {
-      final isFavorite = await _dbHelper.isFavorite(character['id']);
+      final isFavorite = await _dbHelper.isFavorite(character.id);
       
       if (isFavorite) {
-        await _dbHelper.deleteFavorite(character['id']);
+        await _dbHelper.deleteFavorite(character.id);
       } else {
         await _dbHelper.insertFavorite(character);
       }

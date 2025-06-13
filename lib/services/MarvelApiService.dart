@@ -1,62 +1,62 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
-import 'marvel_api_exception.dart';
+import '../models/MarvelCharacter.dart';
+
+class MarvelApiException implements Exception {
+  final String message;
+  final int? statusCode;
+
+  MarvelApiException({required this.message, this.statusCode});
+
+  @override
+  String toString() => 'MarvelApiException: $message${statusCode != null ? ' (Status: $statusCode)' : ''}';
+}
 
 class MarvelApiService {
-  final String baseUrl = "https://gateway.marvel.com/v1/public";
+  static const String _baseUrl = 'https://gateway.marvel.com/v1/public';
+  static const String _publicKey = '1e547dbf5528661feaffab03d3b7412c';
+  static const String _privateKey = '84a68b6c81e8752d7f2b57e77890a4dafe2b241e';
 
-  final String publicKey = '1e547dbf5528661feaffab03d3b7412c';
-  final String privateKey = '84a68b6c81e8752d7f2b57e77890a4dafe2b241e';
+  Uri buildUri(String endpoint, [Map<String, String>? queryParams]) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final hash = _generateHash(timestamp);
 
-  String generateHash(String timestamp) {
-    final String toBeHashed = timestamp + privateKey + publicKey;
+    final params = {
+      'apikey': _publicKey,
+      'ts': timestamp,
+      'hash': hash,
+      if (queryParams != null) ...queryParams,
+    };
+
+    return Uri.parse('$_baseUrl$endpoint').replace(queryParameters: params);
+  }
+
+  String _generateHash(String timestamp) {
+    final String toBeHashed = timestamp + _privateKey + _publicKey;
     return md5.convert(utf8.encode(toBeHashed)).toString();
   }
 
-  Uri buildUri(String endpoint, [Map<String, String>? extraParams]) {
-    final String ts = DateTime.now().millisecondsSinceEpoch.toString();
-    final String hash = generateHash(ts);
-
-    final Map<String, String> queryParams = {
-      'ts': ts,
-      'apikey': publicKey,
-      'hash': hash,
-      if (extraParams != null) ...extraParams,
-    };
-
-    return Uri.parse('$baseUrl$endpoint').replace(queryParameters: queryParams);
-  }
-
   Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      try {
-        final body = jsonDecode(response.body);
-        if (body['code'] != null && body['code'] != 200) {
-          throw MarvelApiException.fromResponse(body);
-        }
-        return body;
-      } catch (e) {
-        if (e is MarvelApiException) rethrow;
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      if (body['code'] != null && body['code'] != 200) {
         throw MarvelApiException(
-          message: 'Failed to parse response: ${e.toString()}',
-          statusCode: response.statusCode,
+          message: body['status'] ?? 'Unknown error',
+          statusCode: body['code'],
         );
       }
+      return body;
     } else {
-      try {
-        final errorBody = jsonDecode(response.body);
-        throw MarvelApiException.fromResponse(errorBody);
-      } catch (e) {
-        throw MarvelApiException(
-          message: 'HTTP Error: ${response.statusCode}',
-          statusCode: response.statusCode,
-        );
-      }
+      throw MarvelApiException(
+        message: 'API request failed',
+        statusCode: response.statusCode,
+      );
     }
   }
 
-  Future<List<dynamic>> getCharacters({int limit = 20}) async {
+  Future<List<MarvelCharacter>> getCharacters({int limit = 20}) async {
     try {
       final url = buildUri('/characters', {
         'limit': limit.toString(),
@@ -67,13 +67,14 @@ class MarvelApiService {
         onTimeout: () {
           throw MarvelApiException(
             message: 'Request timed out',
-            statusCode: 408,
+            statusCode: HttpStatus.requestTimeout,
           );
         },
       );
 
       final body = await _handleResponse(response);
-      return body['data']['results'] as List<dynamic>;
+      final results = body['data']['results'] as List<dynamic>;
+      return results.map((json) => MarvelCharacter.fromJson(json)).toList();
     } on MarvelApiException {
       rethrow;
     } catch (e) {
@@ -83,7 +84,7 @@ class MarvelApiService {
     }
   }
 
-  Future<List<dynamic>> getCharacterComics(int characterId, {int limit = 10}) async {
+  Future<List<Map<String, dynamic>>> getCharacterComics(int characterId, {int limit = 10}) async {
     try {
       final url = buildUri('/characters/$characterId/comics', {
         'limit': limit.toString(),
@@ -101,7 +102,7 @@ class MarvelApiService {
       );
 
       final body = await _handleResponse(response);
-      return body['data']['results'] as List<dynamic>;
+      return body['data']['results'] as List<Map<String, dynamic>>;
     } on MarvelApiException {
       rethrow;
     } catch (e) {

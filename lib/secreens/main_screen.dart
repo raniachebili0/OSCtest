@@ -57,28 +57,26 @@ class _bottomNavBarState extends State<bottomNavBar> {
                   ),
                 ],
               ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildNavItem(
-                        context,
-                        navigationProvider,
-                        0,
-                        Icons.home_rounded,
-                        'Home',
-                      ),
-                      _buildNavItem(
-                        context,
-                        navigationProvider,
-                        1,
-                        Icons.favorite_rounded,
-                        'Favorites',
-                      ),
-                    ],
-                  ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavItem(
+                      context,
+                      navigationProvider,
+                      0,
+                      Icons.home_rounded,
+                      'Home',
+                    ),
+                    _buildNavItem(
+                      context,
+                      navigationProvider,
+                      1,
+                      Icons.favorite_rounded,
+                      'Favorites',
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -3,12 +3,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'marvel_character_card.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_strings.dart';
+import '../models/MarvelCharacter.dart';
 
 class MarvelCharactersList extends StatelessWidget {
-  final List<Map<String, dynamic>> characters;
+  final List<MarvelCharacter> characters;
   final bool isLoading;
   final String? error;
-  final Function(Map<String, dynamic>) onCharacterTap;
+  final Function(MarvelCharacter) onCharacterTap;
   final Future<void> Function() onRefresh;
 
   const MarvelCharactersList({
